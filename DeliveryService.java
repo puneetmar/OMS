@@ -1,35 +1,31 @@
-package com.demoo.deliverymicroservice.Service;
+package com.oms.delivery_microservice.Service;
+
+import java.util.List;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.demoo.deliverymicroservice.Entity.Delivery;
-import jakarta.transaction.Transactional;
-
+import com.oms.delivery_microservice.Entity.DeliveryOrder;
+import com.oms.delivery_microservice.batch.DeliveryOrderRowMapper;
 
 @Service
 public class DeliveryService {
 
-     private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-  public DeliveryService(JdbcTemplate jdbcTemplate) {
-    this.jdbcTemplate = jdbcTemplate;
-  }
+    public DeliveryService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
-  @Transactional
-  public Delivery createDelivery(Delivery delivery) {
+     public List<DeliveryOrder> getAllDeliveryOrders() {
+        String sql = "SELECT * FROM delivery_table";
+        return jdbcTemplate.query(sql, new DeliveryOrderRowMapper());
+    }
 
-    // Insert delivery into database
-    jdbcTemplate.update("INSERT INTO deliveries (order_id, quantity, customer_name, customer_address, delivery_status) VALUES (?, ?, ?, ?, ?)",
-      delivery.getOrderId(), delivery.getQuantity(), delivery.getCustomerName(), delivery.getCustomerAddress(), delivery.getDeliveryStatus());
+    public void putOrderInDelivery(DeliveryOrder deliveryOrder) {
+        String sql = "INSERT INTO delivery_table (order_id, quantity, customer_name, customer_address) VALUES (?, ?, ?, ?)";
 
-    // Get the delivery id of the inserted delivery
-    Integer deliveryId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
-
-    // Set the delivery id on the delivery object
-    delivery.setDeliveryId(deliveryId);
-
-    // Return the delivery object
-    return delivery;
-  }
-    
+        jdbcTemplate.update(sql, deliveryOrder.getOrderId(), deliveryOrder.getQuantity(),
+                deliveryOrder.getCustomerName(), deliveryOrder.getCustomerAddress());
+    }
 }
